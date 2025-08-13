@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resize Image Online - EditIMG</title>
+  <meta name="description" content="Easily resize your images to specific dimensions (pixels). Maintain aspect ratio or set custom width and height. Free, private, and fast.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .dropzone-highlight { border-color: #10b981; background-color: rgba(16, 185, 129, 0.05); }
+    #live-canvas { max-width: 100%; max-height: 500px; }
+    .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+    .accordion.active .accordion-content { max-height: 500px; }
+    .accordion.active .accordion-toggle { transform: rotate(180deg); }
+  </style>
+</head>
+<body class="bg-slate-50 text-gray-800">
+  <div class="min-h-screen flex flex-col">
+    <header class="bg-white/80 shadow-sm sticky top-0 z-50 backdrop-blur-lg">
+      <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center py-4">
+          <a href="index.html" class="flex items-center space-x-3">
+            <i class="fas fa-images text-green-500 text-3xl"></i>
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-800">EditIMG</h1>
+          </a>
+          <a href="index.html" class="text-gray-600 hover:text-green-500 font-medium">
+            <i class="fas fa-arrow-left mr-2"></i>Back to All Tools
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Image Resize Tool</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Change the width and height of your images in pixels with a live preview.</p>
+            </div>
+
+            <div id="tool-root"></div>
+
+            <section class="mt-16 bg-white p-8 rounded-2xl shadow-md border">
+              <h3 class="text-2xl font-bold text-center mb-8">How to Resize Your Image</h3>
+              <ol class="list-decimal list-inside space-y-4 max-w-2xl mx-auto text-gray-700">
+                <li><strong>Upload Image:</strong> Drop your image file into the upload area or click to select it.</li>
+                <li><strong>Enter New Dimensions:</strong> In the options panel on the left, type your desired width or height in the input boxes.</li>
+                <li><strong>Maintain Aspect Ratio:</strong> Keep the "Maintain aspect ratio" box checked to prevent your image from being stretched or distorted. Uncheck it to set width and height independently.</li>
+                <li><strong>Download Your Image:</strong> Once you are happy with the preview on the right, click the "Download Image" button to save the resized version.</li>
+              </ol>
+            </section>
+
+            <section class="pt-16 max-w-4xl mx-auto">
+              <h2 class="text-3xl font-bold text-center mb-8">Resizing FAQ</h2>
+              <div class="space-y-4 bg-white p-8 rounded-2xl shadow-lg border">
+                <div class="accordion border-b pb-4">
+                  <button class="w-full flex justify-between items-center text-left font-semibold py-2 accordion-btn">
+                    <span>Will resizing my image make it blurry?</span>
+                    <i class="fas fa-chevron-down accordion-toggle text-green-500"></i>
+                  </button>
+                  <div class="accordion-content mt-2 text-gray-600">
+                    <p>Making an image smaller (downscaling) generally preserves quality well. Making an image significantly larger (upscaling) than its original size can cause it to lose sharpness and appear blurry or pixelated, as the browser has to guess what the new pixels should look like.</p>
+                  </div>
+                </div>
+                <div class="accordion border-b pb-4">
+                  <button class="w-full flex justify-between items-center text-left font-semibold py-2 accordion-btn">
+                    <span>What is "aspect ratio"?</span>
+                    <i class="fas fa-chevron-down accordion-toggle text-green-500"></i>
+                  </button>
+                  <div class="accordion-content mt-2 text-gray-600">
+                    <p>Aspect ratio is the proportional relationship between an image's width and height. Keeping it locked ensures that when you change one dimension (e.g., width), the other dimension (height) adjusts automatically to keep the image from looking squashed.</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="bg-white py-6 border-t border-gray-200 mt-20">
+      <div class="container mx-auto px-4 text-center">
+        <p class="text-gray-600">© 2025 EditIMG. All rights reserved.</p>
+      </div>
+    </footer>
+  </div>
+
+  <template id="dropzone-template"><div class="max-w-xl mx-auto"><div id="dropzone" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-green-500 hover:bg-green-50"><div class="flex flex-col items-center justify-center space-y-4"><i class="fas fa-cloud-upload-alt text-4xl text-green-500"></i><h3 class="text-xl font-semibold">Drop your image here</h3><p class="text-gray-500">or click to select a file</p><input type="file" id="fileInput" class="hidden" accept="image/*"><button id="selectFileBtn" class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Select Image</button></div></div></div></template>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        setupInteractiveTool({ toolId: 'resize-image', title: 'Image Resize' });
+
+        document.querySelectorAll('.accordion-btn').forEach(b => {
+            b.addEventListener('click', () => b.closest('.accordion').classList.toggle('active'));
+        });
+    });
+
+    function setupInteractiveTool(config) {
+        const toolRoot = document.getElementById('tool-root');
+        toolRoot.innerHTML = document.getElementById('dropzone-template').innerHTML;
+        const fileInput = toolRoot.querySelector('#fileInput'), selectBtn = toolRoot.querySelector('#selectFileBtn'), dropzone = toolRoot.querySelector('#dropzone');
+        
+        const handleFile = (file) => {
+            if (!file || !file.type.startsWith('image/')) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const originalImage = new Image();
+                originalImage.onload = () => {
+                    toolRoot.innerHTML = `<div class="bg-white p-6 rounded-xl shadow-md border grid md:grid-cols-3 gap-6"><div id="options-panel" class="md:col-span-1 space-y-4"></div><div id="preview-panel" class="md:col-span-2 min-h-[300px] bg-gray-100 rounded-md flex items-center justify-center p-2"><canvas id="live-canvas"></canvas></div></div>`;
+                    buildInteractiveOptions(toolRoot.querySelector('#options-panel'), originalImage, config);
+                };
+                originalImage.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+        
+        selectBtn.onclick = () => fileInput.click();
+        fileInput.onchange = (e) => handleFile(e.target.files[0]);
+        dropzone.ondragover = (e) => { e.preventDefault(); dropzone.classList.add('dropzone-highlight'); };
+        dropzone.ondragleave = () => dropzone.classList.remove('dropzone-highlight');
+        dropzone.ondrop = (e) => { e.preventDefault(); dropzone.classList.remove('dropzone-highlight'); handleFile(e.dataTransfer.files[0]); };
+    }
+
+    function buildInteractiveOptions(panel, originalImage, config) {
+        let optionsHtml = `<h3 class="text-xl font-bold border-b pb-2">${config.title}</h3>`;
+        const canvas = document.getElementById('live-canvas'), ctx = canvas.getContext('2d');
+
+        optionsHtml += `<div class="grid grid-cols-2 gap-2"><div><label for="width" class="block text-sm font-medium">Width</label><input type="number" id="width" class="w-full border-gray-300 rounded-md mt-1 p-2"></div><div><label for="height" class="block text-sm font-medium">Height</label><input type="number" id="height" class="w-full border-gray-300 rounded-md mt-1 p-2"></div></div><div><input type="checkbox" id="aspect" checked class="rounded"><label for="aspect" class="ml-2 text-sm">Maintain aspect ratio</label></div>`;
+        optionsHtml += `<div class="pt-4 border-t"><a id="download-btn" class="w-full block text-center px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600">Download Image</a></div><button id="reset-btn" class="w-full mt-2 px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">New Image</button>`;
+        panel.innerHTML = optionsHtml;
+
+        document.getElementById('reset-btn').onclick = () => setupInteractiveTool(config);
+        
+        const wIn = document.getElementById('width'), hIn = document.getElementById('height'), aspect = document.getElementById('aspect'), ratio = originalImage.width / originalImage.height;
+        wIn.value = originalImage.width; hIn.value = originalImage.height;
+        
+        const redraw = () => {
+            canvas.width = wIn.value > 0 ? wIn.value : 1;
+            canvas.height = hIn.value > 0 ? hIn.value : 1;
+            ctx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
+        };
+        
+        wIn.oninput = () => { if(aspect.checked) hIn.value = Math.round(wIn.value / ratio); redraw(); };
+        hIn.oninput = () => { if(aspect.checked) wIn.value = Math.round(hIn.value * ratio); redraw(); };
+        aspect.onchange = () => { if(aspect.checked) { hIn.value = Math.round(wIn.value / ratio); redraw(); }};
+        
+        document.getElementById('download-btn').onclick = (e) => {
+            e.currentTarget.href = canvas.toDataURL('image/png');
+            e.currentTarget.download = `editimg-resized.png`;
+        };
+
+        redraw();
+    }
+  </script>
+</body>
+</html>

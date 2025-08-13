@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image to PDF Converter - EditIMG</title>
+  <meta name="description" content="Combine multiple JPG, PNG, and other images into a single PDF document for free. Fast, secure, and works entirely in your browser without uploads.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .dropzone-highlight { border-color: #3b82f6; background-color: rgba(59, 130, 246, 0.05); }
+    .image-preview { position: relative; }
+    .remove-btn { position: absolute; top: 0.5rem; right: 0.5rem; opacity: 0; transition: opacity 0.3s ease; }
+    .image-preview:hover .remove-btn { opacity: 1; }
+    .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+    .accordion.active .accordion-content { max-height: 500px; }
+    .accordion.active .accordion-toggle { transform: rotate(180deg); }
+  </style>
+</head>
+<body class="bg-slate-50 text-gray-800">
+  <div class="min-h-screen flex flex-col">
+    <header class="bg-white/80 shadow-sm sticky top-0 z-50 backdrop-blur-lg">
+      <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center py-4">
+          <a href="index.html" class="flex items-center space-x-3">
+            <i class="fas fa-images text-green-500 text-3xl"></i>
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-800">EditIMG</h1>
+          </a>
+          <a href="index.html" class="text-gray-600 hover:text-green-500 font-medium">
+            <i class="fas fa-arrow-left mr-2"></i>Back to All Tools
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-8">
+      <div class="max-w-4xl mx-auto">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl md:text-4xl font-bold mb-4">Image to PDF Converter</h2>
+          <p class="text-gray-600 max-w-2xl mx-auto">Combine multiple images into one convenient, high-quality PDF document.</p>
+        </div>
+        
+        <div id="dropzone" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50">
+          <div class="flex flex-col items-center justify-center space-y-4"><i class="fas fa-cloud-upload-alt text-5xl text-blue-500"></i><h3 class="text-2xl font-semibold">Drop images here</h3><p class="text-gray-500">or click to select files</p><input type="file" id="fileInput" class="hidden" accept="image/*" multiple><button id="selectFilesBtn" class="px-8 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600">Select Images</button></div>
+        </div>
+        <div id="previewSection" class="hidden mt-8">
+          <div class="flex justify-between items-center mb-4 pb-4 border-b"><h3 class="text-xl font-bold text-gray-700">Selected Images</h3><div class="flex space-x-2"><button id="clearAllBtn" class="px-4 py-2 text-sm bg-red-500 text-white font-semibold rounded-md hover:bg-red-600">Clear All</button><button id="generatePdfBtn" class="px-6 py-2 text-sm bg-green-500 text-white font-semibold rounded-md hover:bg-green-600"><i class="fas fa-file-alt mr-2"></i>Generate PDF</button></div></div>
+          <div id="imagePreviews" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-8"></div>
+        </div>
+        <div id="loadingState" class="hidden text-center py-16"><div class="animate-pulse flex flex-col items-center"><i class="fas fa-spinner fa-spin text-5xl text-blue-500 mb-6"></i><p class="text-xl text-gray-600 font-semibold">Generating your PDF...</p></div></div>
+        <div id="resultSection" class="hidden text-center py-12"><div class="bg-white rounded-2xl shadow-xl p-8 max-w-md mx-auto border"><i class="fas fa-check-circle text-6xl text-green-500 mb-6"></i><h3 class="text-2xl font-bold text-gray-800 mb-2">Your PDF is Ready!</h3><p class="text-gray-600 mb-8">Your images have been combined into a PDF.</p><button id="downloadPdfBtn" class="w-full px-6 py-4 bg-blue-500 text-white font-bold text-lg rounded-lg hover:bg-blue-600"><i class="fas fa-download mr-2"></i>Download PDF</button><button id="newConversionBtn" class="mt-4 w-full px-6 py-3 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300">Create Another PDF</button></div></div>
+
+        <section class="mt-16 bg-white p-8 rounded-2xl shadow-md border">
+          <h3 class="text-2xl font-bold text-center mb-8">How to Convert Images to PDF</h3>
+          <ol class="list-decimal list-inside space-y-4 max-w-2xl mx-auto text-gray-700">
+            <li><strong>Upload Your Images:</strong> Drag and drop all the images you want in your PDF into the upload area. You can select multiple files at once.</li>
+            <li><strong>Review and Order:</strong> The images will appear in the order you selected them. To change the order, click "Clear All" and re-upload them in the desired sequence.</li>
+            <li><strong>Generate PDF:</strong> Click the "Generate PDF" button. The tool will begin creating your document.</li>
+            <li><strong>Download Your File:</strong> Once processing is complete, click the "Download PDF" button to save your file.</li>
+          </ol>
+        </section>
+
+        <section class="pt-16 max-w-4xl mx-auto">
+          <h2 class="text-3xl font-bold text-center mb-8">PDF Conversion FAQ</h2>
+          <div class="space-y-4 bg-white p-8 rounded-2xl shadow-lg border">
+            <div class="accordion border-b pb-4">
+              <button class="w-full flex justify-between items-center text-left font-semibold py-2 accordion-btn">
+                <span>Can I reorder the images after uploading?</span>
+                <i class="fas fa-chevron-down accordion-toggle text-green-500"></i>
+              </button>
+              <div class="accordion-content mt-2 text-gray-600">
+                <p>Currently, images are added to the PDF in the order you select them. To reorder, please use the "Clear All" button and select the files again in the correct sequence. Drag-and-drop reordering is planned for a future update!</p>
+              </div>
+            </div>
+            <div class="accordion">
+              <button class="w-full flex justify-between items-center text-left font-semibold py-2 accordion-btn">
+                <span>Will the image quality be good in the PDF?</span>
+                <i class="fas fa-chevron-down accordion-toggle text-green-500"></i>
+              </button>
+              <div class="accordion-content mt-2 text-gray-600">
+                <p>Yes. The tool embeds the images into the PDF document at their original quality, without applying any extra, lossy compression, ensuring your PDF looks sharp and clear.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="bg-white py-6 border-t border-gray-200 mt-20">
+      <div class="container mx-auto px-4 text-center">
+        <p class="text-gray-600">© 2025 EditIMG. All rights reserved.</p>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const { jsPDF } = window.jspdf;
+        const dropzone = document.getElementById('dropzone'), fileInput = document.getElementById('fileInput'), selectFilesBtn = document.getElementById('selectFilesBtn'), previewSection = document.getElementById('previewSection'), imagePreviews = document.getElementById('imagePreviews'), clearAllBtn = document.getElementById('clearAllBtn'), generatePdfBtn = document.getElementById('generatePdfBtn'), loadingState = document.getElementById('loadingState'), resultSection = document.getElementById('resultSection'), downloadPdfBtn = document.getElementById('downloadPdfBtn'), newConversionBtn = document.getElementById('newConversionBtn');
+        let files = [], pdfBlob = null;
+
+        const handleFileSelect = (fileList) => {
+            const newFiles = Array.from(fileList).filter(file => file.type.startsWith('image/'));
+            if (newFiles.length > 0) {
+                files = [...files, ...newFiles];
+                updatePreview();
+            }
+        };
+
+        const updatePreview = () => {
+            if (files.length === 0) { previewSection.classList.add('hidden'); dropzone.classList.remove('hidden'); return; }
+            dropzone.classList.add('hidden'); previewSection.classList.remove('hidden'); imagePreviews.innerHTML = '';
+            files.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewDiv = document.createElement('div');
+                    previewDiv.className = 'image-preview bg-white rounded-lg overflow-hidden shadow-md border';
+                    const img = document.createElement('img');
+                    img.src = e.target.result; img.className = 'w-full h-40 object-cover'; img.alt = 'Image Preview';
+                    const removeButton = document.createElement('button');
+                    removeButton.className = 'remove-btn p-1.5 bg-red-500 text-white rounded-full leading-none';
+                    removeButton.innerHTML = '<i class="fas fa-times fa-xs"></i>';
+                    removeButton.onclick = (event) => { event.stopPropagation(); files.splice(index, 1); updatePreview(); };
+                    previewDiv.appendChild(img); previewDiv.appendChild(removeButton); imagePreviews.appendChild(previewDiv);
+                };
+                reader.readAsDataURL(file);
+            });
+        };
+
+        const generatePdf = async () => {
+            if (files.length === 0) return;
+            previewSection.classList.add('hidden'); loadingState.classList.remove('hidden'); resultSection.classList.add('hidden');
+            try {
+                const pdf = new jsPDF({ unit: 'pt', format: 'a4' });
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const imgData = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = (e) => resolve(e.target.result);
+                        reader.onerror = (err) => reject(new Error("File could not be read."));
+                        reader.readAsDataURL(file);
+                    });
+                    const img = new Image();
+                    img.src = imgData;
+                    await new Promise((resolve, reject) => {
+                        img.onload = () => {
+                            const pageInfo = pdf.internal.pageSize, pageW = pageInfo.getWidth(), pageH = pageInfo.getHeight();
+                            const margin = 80, usableW = pageW - margin, usableH = pageH - margin;
+                            const ratio = Math.min(usableW / img.width, usableH / img.height);
+                            const finalWidth = img.width * ratio, finalHeight = img.height * ratio;
+                            const x = (pageW - finalWidth) / 2, y = (pageH - finalHeight) / 2;
+                            if (i > 0) pdf.addPage();
+                            pdf.addImage(img, 'JPEG', x, y, finalWidth, finalHeight);
+                            resolve();
+                        };
+                        img.onerror = () => reject(new Error("Image could not be loaded."));
+                    });
+                }
+                pdfBlob = pdf.output('blob');
+                loadingState.classList.add('hidden'); resultSection.classList.remove('hidden');
+            } catch (error) {
+                console.error("PDF generation error:", error);
+                loadingState.classList.add('hidden');
+                alert("Error generating PDF. One or more images may be corrupt or unsupported.");
+                previewSection.classList.remove('hidden');
+            }
+        };
+
+        const resetApp = () => { files = []; pdfBlob = null; fileInput.value = ''; updatePreview(); loadingState.classList.add('hidden'); resultSection.classList.add('hidden'); dropzone.classList.remove('hidden'); };
+        selectFilesBtn.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => handleFileSelect(e.target.files));
+        dropzone.addEventListener('click', () => fileInput.click());
+        dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dropzone-highlight'); });
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dropzone-highlight'));
+        dropzone.addEventListener('drop', (e) => { e.preventDefault(); dropzone.classList.remove('dropzone-highlight'); handleFileSelect(e.dataTransfer.files); });
+        clearAllBtn.addEventListener('click', resetApp);
+        newConversionBtn.addEventListener('click', resetApp);
+        generatePdfBtn.addEventListener('click', generatePdf);
+        downloadPdfBtn.addEventListener('click', () => {
+            if (!pdfBlob) return;
+            const url = URL.createObjectURL(pdfBlob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'EditIMG_Converted.pdf';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+        });
+        
+        document.querySelectorAll('.accordion-btn').forEach(b => {
+            b.addEventListener('click', () => b.closest('.accordion').classList.toggle('active'));
+        });
+    });
+  </script>
+</body>
+</html>

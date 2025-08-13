@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rotate Image Online - EditIMG</title>
+  <meta name="description" content="Rotate your images left or right, or flip them horizontally and vertically. Free, fast, and private image orientation tool.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .dropzone-highlight { border-color: #10b981; background-color: rgba(16, 185, 129, 0.05); }
+    #live-canvas { max-width: 100%; max-height: 500px; }
+    .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+    .accordion.active .accordion-content { max-height: 500px; }
+    .accordion.active .accordion-toggle { transform: rotate(180deg); }
+  </style>
+</head>
+<body class="bg-slate-50 text-gray-800">
+  <div class="min-h-screen flex flex-col">
+    <header class="bg-white/80 shadow-sm sticky top-0 z-50 backdrop-blur-lg">
+      <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center py-4">
+          <a href="index.html" class="flex items-center space-x-3">
+            <i class="fas fa-images text-green-500 text-3xl"></i>
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-800">EditIMG</h1>
+          </a>
+          <a href="index.html" class="text-gray-600 hover:text-green-500 font-medium">
+            <i class="fas fa-arrow-left mr-2"></i>Back to All Tools
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Image Rotate & Flip Tool</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Correct the orientation of your photos with simple rotation and flipping options.</p>
+            </div>
+
+            <div id="tool-root"></div>
+
+            <section class="mt-16 bg-white p-8 rounded-2xl shadow-md border">
+              <h3 class="text-2xl font-bold text-center mb-8">How to Rotate or Flip an Image</h3>
+              <ol class="list-decimal list-inside space-y-4 max-w-2xl mx-auto text-gray-700">
+                <li><strong>Upload Your Image:</strong> Drop an image into the upload box or click to select a file.</li>
+                <li><strong>Use the Controls:</strong> In the options panel, click the buttons to rotate the image left (-90°), right (+90°), flip horizontally, or flip vertically.</li>
+                <li><strong>Preview the Result:</strong> The image preview on the right will update instantly with each click.</li>
+                <li><strong>Download Your Image:</strong> Once satisfied, click the "Download Image" button to save the corrected image.</li>
+              </ol>
+            </section>
+
+            <section class="pt-16 max-w-4xl mx-auto">
+              <h2 class="text-3xl font-bold text-center mb-8">Rotation FAQ</h2>
+              <div class="space-y-4 bg-white p-8 rounded-2xl shadow-lg border">
+                <div class="accordion border-b pb-4">
+                  <button class="w-full flex justify-between items-center text-left font-semibold py-2 accordion-btn">
+                    <span>Why did my image upload sideways?</span>
+                    <i class="fas fa-chevron-down accordion-toggle text-green-500"></i>
+                  </button>
+                  <div class="accordion-content mt-2 text-gray-600">
+                    <p>Some cameras and phones save an "orientation" tag in the image's metadata (EXIF data) instead of physically rotating the pixels. While some software reads this tag, many web browsers ignore it, causing the image to appear sideways. This tool helps you physically rotate the pixels so it displays correctly everywhere.</p>
+                  </div>
+                </div>
+                <div class="accordion">
+                  <button class="w-full flex justify-between items-center text-left font-semibold py-2 accordion-btn">
+                    <span>What's the difference between rotating and flipping?</span>
+                    <i class="fas fa-chevron-down accordion-toggle text-green-500"></i>
+                  </button>
+                  <div class="accordion-content mt-2 text-gray-600">
+                    <p><strong>Rotating</strong> turns the entire image around a central point (e.g., by 90 degrees). <strong>Flipping</strong> creates a mirror image across a horizontal or vertical axis. For example, flipping horizontally will make text appear backward.</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="bg-white py-6 border-t border-gray-200 mt-20">
+      <div class="container mx-auto px-4 text-center">
+        <p class="text-gray-600">© 2025 EditIMG. All rights reserved.</p>
+      </div>
+    </footer>
+  </div>
+
+  <template id="dropzone-template"><div class="max-w-xl mx-auto"><div id="dropzone" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-green-500 hover:bg-green-50"><div class="flex flex-col items-center justify-center space-y-4"><i class="fas fa-cloud-upload-alt text-4xl text-green-500"></i><h3 class="text-xl font-semibold">Drop your image here</h3><p class="text-gray-500">or click to select a file</p><input type="file" id="fileInput" class="hidden" accept="image/*"><button id="selectFileBtn" class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Select Image</button></div></div></div></template>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        setupInteractiveTool({ toolId: 'rotate-image', title: 'Rotate & Flip' });
+        
+        document.querySelectorAll('.accordion-btn').forEach(b => {
+            b.addEventListener('click', () => b.closest('.accordion').classList.toggle('active'));
+        });
+    });
+
+    function setupInteractiveTool(config) {
+        const toolRoot = document.getElementById('tool-root');
+        toolRoot.innerHTML = document.getElementById('dropzone-template').innerHTML;
+        const fileInput = toolRoot.querySelector('#fileInput'), selectBtn = toolRoot.querySelector('#selectFileBtn'), dropzone = toolRoot.querySelector('#dropzone');
+        
+        const handleFile = (file) => {
+            if (!file || !file.type.startsWith('image/')) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const originalImage = new Image();
+                originalImage.onload = () => {
+                    toolRoot.innerHTML = `<div class="bg-white p-6 rounded-xl shadow-md border grid md:grid-cols-3 gap-6"><div id="options-panel" class="md:col-span-1 space-y-4"></div><div id="preview-panel" class="md:col-span-2 min-h-[300px] bg-gray-100 rounded-md flex items-center justify-center p-2"><canvas id="live-canvas"></canvas></div></div>`;
+                    buildInteractiveOptions(toolRoot.querySelector('#options-panel'), originalImage, config);
+                };
+                originalImage.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+        
+        selectBtn.onclick = () => fileInput.click();
+        fileInput.onchange = (e) => handleFile(e.target.files[0]);
+        dropzone.ondragover = (e) => { e.preventDefault(); dropzone.classList.add('dropzone-highlight'); };
+        dropzone.ondragleave = () => dropzone.classList.remove('dropzone-highlight');
+        dropzone.ondrop = (e) => { e.preventDefault(); dropzone.classList.remove('dropzone-highlight'); handleFile(e.dataTransfer.files[0]); };
+    }
+
+    function buildInteractiveOptions(panel, originalImage, config) {
+        let optionsHtml = `<h3 class="text-xl font-bold border-b pb-2">${config.title}</h3>`;
+        const canvas = document.getElementById('live-canvas'), ctx = canvas.getContext('2d');
+        let state = { angle: 0, scaleX: 1, scaleY: 1 };
+        
+        const redraw = () => {
+            const angleRad = state.angle * Math.PI / 180;
+            const swapDim = state.angle === 90 || state.angle === 270;
+            const w = swapDim ? originalImage.height : originalImage.width;
+            const h = swapDim ? originalImage.width : originalImage.height;
+            canvas.width = w;
+            canvas.height = h;
+            ctx.clearRect(0, 0, w, h);
+            ctx.save();
+            ctx.translate(w / 2, h / 2);
+            ctx.rotate(angleRad);
+            ctx.scale(state.scaleX, state.scaleY);
+            ctx.drawImage(originalImage, -originalImage.width / 2, -originalImage.height / 2);
+            ctx.restore();
+        };
+
+        optionsHtml += `<div class="grid grid-cols-2 gap-2"><button id="rotate-left" class="p-2 bg-gray-200 rounded hover:bg-gray-300"><i class="fas fa-undo mr-2"></i>-90°</button><button id="rotate-right" class="p-2 bg-gray-200 rounded hover:bg-gray-300">+90°<i class="fas fa-redo ml-2"></i></button><button id="flip-h" class="p-2 bg-gray-200 rounded hover:bg-gray-300"><i class="fas fa-arrows-alt-h mr-2"></i>Flip H</button><button id="flip-v" class="p-2 bg-gray-200 rounded hover:bg-gray-300"><i class="fas fa-arrows-alt-v mr-2"></i>Flip V</button></div>`;
+        optionsHtml += `<div class="pt-4 border-t"><a id="download-btn" class="w-full block text-center px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600">Download Image</a></div><button id="reset-btn" class="w-full mt-2 px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">New Image</button>`;
+        panel.innerHTML = optionsHtml;
+
+        document.getElementById('reset-btn').onclick = () => setupInteractiveTool(config);
+        
+        document.getElementById('rotate-right').onclick = () => { state.angle = (state.angle + 90) % 360; redraw(); };
+        document.getElementById('rotate-left').onclick = () => { state.angle = (state.angle - 90 + 360) % 360; redraw(); };
+        document.getElementById('flip-h').onclick = () => { state.scaleX *= -1; redraw(); };
+        document.getElementById('flip-v').onclick = () => { state.scaleY *= -1; redraw(); };
+        
+        document.getElementById('download-btn').onclick = (e) => {
+            e.currentTarget.href = canvas.toDataURL('image/png');
+            e.currentTarget.download = `editimg-rotated.png`;
+        };
+        
+        redraw();
+    }
+  </script>
+</body>
+</html>

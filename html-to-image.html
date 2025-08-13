@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTML to Image Converter - EditIMG</title>
+  <meta name="description" content="Convert HTML code into a high-quality PNG image for free. Paste your HTML, see a live preview, and download the result instantly.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+    .accordion.active .accordion-content { max-height: 500px; }
+    .accordion.active .accordion-toggle { transform: rotate(180deg); }
+  </style>
+</head>
+<body class="bg-slate-50 text-gray-800">
+  <div class="min-h-screen flex flex-col">
+    <header class="bg-white/80 shadow-sm sticky top-0 z-50 backdrop-blur-lg">
+      <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center py-4">
+          <a href="index.html" class="flex items-center space-x-3">
+            <i class="fas fa-images text-green-500 text-3xl"></i>
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-800">EditIMG</h1>
+          </a>
+          <a href="index.html" class="text-gray-600 hover:text-green-500 font-medium">
+            <i class="fas fa-arrow-left mr-2"></i>Back to All Tools
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-8">
+      <div class="max-w-4xl mx-auto">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl md:text-4xl font-bold mb-4">HTML to Image Tool</h2>
+          <p class="text-gray-600 max-w-2xl mx-auto">Turn your HTML and CSS code into a downloadable PNG image instantly.</p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-xl shadow-md border">
+          <label for="htmlInput" class="block text-sm font-medium text-gray-700 mb-2">Enter HTML Code:</label>
+          <textarea id="htmlInput" rows="10" class="w-full p-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 font-mono text-sm" placeholder="e.g., <h1 style='color: blue;'>Hello World!</h1>"></textarea>
+          <div id="htmlPreview" class="mt-4 p-4 border border-dashed rounded-md min-h-[100px] bg-gray-50"></div>
+          <div class="mt-4 text-right">
+            <button id="generateImageBtn" class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Convert to Image</button>
+          </div>
+        </div>
+        <div id="resultContainer" class="hidden text-center mt-8"></div>
+
+        <section class="mt-16 bg-white p-8 rounded-2xl shadow-md border">
+          <h3 class="text-2xl font-bold text-center mb-8">How to Convert HTML to an Image</h3>
+          <ol class="list-decimal list-inside space-y-4 max-w-2xl mx-auto text-gray-700">
+            <li><strong>Write Your Code:</strong> Type or paste your HTML and inline CSS into the text box.</li>
+            <li><strong>Live Preview:</strong> As you type, a live preview of how your HTML renders will appear in the box below it.</li>
+            <li><strong>Generate Image:</strong> When your preview looks correct, click the "Convert to Image" button.</li>
+            <li><strong>Download Your PNG:</strong> A downloadable version of your rendered HTML will appear. Click the "Download" button to save it as a PNG file.</li>
+          </ol>
+        </section>
+
+        <section class="pt-16 max-w-4xl mx-auto">
+          <h2 class="text-3xl font-bold text-center mb-8">HTML Conversion FAQ</h2>
+          <div class="space-y-4 bg-white p-8 rounded-2xl shadow-lg border">
+            <div class="accordion border-b pb-4">
+              <button class="w-full flex justify-between items-center text-left font-semibold py-2 accordion-btn">
+                <span>Can I use external stylesheets or JavaScript?</span>
+                <i class="fas fa-chevron-down accordion-toggle text-green-500"></i>
+              </button>
+              <div class="accordion-content mt-2 text-gray-600">
+                <p>For security and simplicity, this tool does not execute external scripts (`<script src="...">`) or load external stylesheets (`<link rel="stylesheet">`). All styling should be done using inline `style` attributes or within a `<style>` tag directly in the HTML input box.</p>
+              </div>
+            </div>
+            <div class="accordion">
+              <button class="w-full flex justify-between items-center text-left font-semibold py-2 accordion-btn">
+                <span>Why doesn't my image look exactly like it does in my browser?</span>
+                <i class="fas fa-chevron-down accordion-toggle text-green-500"></i>
+              </button>
+              <div class="accordion-content mt-2 text-gray-600">
+                <p>The rendering is handled by the `html2canvas` library, which does an excellent job but may have minor differences compared to specific browser rendering engines, especially with complex CSS like flexbox or grid. For best results, use simpler, well-supported CSS properties.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="bg-white py-6 border-t border-gray-200 mt-20">
+      <div class="container mx-auto px-4 text-center">
+        <p class="text-gray-600">© 2025 EditIMG. All rights reserved.</p>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const htmlInput = document.getElementById('htmlInput'), htmlPreview = document.getElementById('htmlPreview'), generateBtn = document.getElementById('generateImageBtn'), resultContainer = document.getElementById('resultContainer');
+        htmlInput.oninput = () => htmlPreview.innerHTML = htmlInput.value;
+        generateBtn.onclick = () => {
+            if (!htmlInput.value.trim()) { alert('Please enter some HTML code.'); return; }
+            resultContainer.innerHTML = `<div class="text-center p-4"><i class="fas fa-spinner fa-spin text-2xl text-green-500"></i><p class="mt-2">Generating image...</p></div>`;
+            resultContainer.classList.remove('hidden');
+            html2canvas(htmlPreview, { useCORS: true, backgroundColor: '#ffffff' }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                resultContainer.innerHTML = `<div class="bg-white p-6 rounded-xl shadow-md border"><h3 class="text-xl font-semibold mb-4">Your Image is Ready!</h3><img src="${imgData}" class="max-w-full mx-auto border shadow-md rounded-md"/><a href="${imgData}" download="editimg-capture.png" class="mt-6 inline-block px-8 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600">Download PNG</a></div>`;
+            }).catch(err => {
+                console.error(err);
+                resultContainer.innerHTML = `<p class="text-red-500">Could not generate image. Check browser console for errors.</p>`;
+            });
+        };
+        
+        document.querySelectorAll('.accordion-btn').forEach(b => {
+            b.addEventListener('click', () => b.closest('.accordion').classList.toggle('active'));
+        });
+    });
+  </script>
+</body>
+</html>
